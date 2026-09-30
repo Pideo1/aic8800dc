@@ -1,0 +1,47 @@
+name: Interactive SSH Debug Session
+
+on:
+  workflow_dispatch:
+    inputs:
+      detach_mode:
+        description: '保持运行模式 (true: 后台运行持续等待; false: 仅在报错时触发)'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  ssh-debug:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------------
+      # 可在此处添加你的基础编译依赖安装 steps
+      # 例如:
+      # - name: Install Dependencies
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y build-essential cmake gcc
+      # ---------------------------------------------------------
+
+      - name: Start SSH Debug Session (tmate)
+        uses: mxschmitt/action-tmate@v3
+        with:
+          detached: false
+          limit-access-to-actor: false
+
+      # ---------------------------------------------------------
+      # SSH 调试结束后（在 SSH 终端输入 exit 或 touch continue 退出）
+      # 将自动执行以下上传步骤：
+      # ---------------------------------------------------------
+
+      - name: Upload APKs to Artifacts
+        # if: always() 可以保证即便 SSH 调试中断或前步异常也会尝试上传文件
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-apks  # Artifact 下载时的压缩包名称
+          path: '**/*.apk'      # 匹配根目录及所有子文件夹下的 .apk 文件
+          if-no-files-found: warn # 如果没有找到 apk 文件，输出警告但不使 Workflow 失败
