@@ -2,12 +2,6 @@ name: Interactive SSH Debug Session
 
 on:
   workflow_dispatch:
-    inputs:
-      detach_mode:
-        description: '保持运行模式 (true: 后台运行持续等待; false: 仅在报错时触发)'
-        required: false
-        default: 'true'
-        type: boolean
 
 jobs:
   ssh-debug:
@@ -26,12 +20,10 @@ jobs:
           sudo apt-get install -y build-essential cmake gcc
       # ---------------------------------------------------------
 
-      - name: Start SSH Debug Session (tmate)
+      - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        with:
-          detached: false
-          limit-access-to-actor: false
-
+        timeout-minutes: 15
+        
       # ---------------------------------------------------------
       # SSH 调试结束后（在 SSH 终端输入 exit 或 touch continue 退出）
       # 将自动执行以下上传步骤：
